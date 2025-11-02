@@ -100,7 +100,10 @@ export function EventCard({
       : ''
   console.log('[EventCard] Event type:', event.type, 'Title:', title, 'Professional:', professional)
   console.log('[EventCard] Full title string:', `${title} - ${professional} - ${time}`)
-  const instructions = event.description || ''
+  // Regra: se houver observation, mostrar; senão, mostrar description (que será 'Laudo enviado pelo app Omni' para eventos via laudo)
+  const instructions = event.observation?.trim()
+    ? event.observation
+    : event.description || ''
   const [showViewModal, setShowViewModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showFilesModal, setShowFilesModal] = useState(false)

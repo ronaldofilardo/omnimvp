@@ -5,7 +5,8 @@ export async function PUT(req: Request) {
   type UpdateEventBody = {
     id: string
     title: string
-    description?: string
+  description?: string
+  observation?: string
     date: string
     type: EventType
     startTime: string
@@ -223,6 +224,7 @@ export async function POST(req: Request) {
   type EventBody = {
     title: string
     description?: string
+    observation?: string
     date: string
     type: EventType
     startTime: string
@@ -241,6 +243,7 @@ export async function POST(req: Request) {
     const {
       title,
       description,
+      observation,
       date,
       type,
       startTime,
@@ -309,11 +312,16 @@ export async function POST(req: Request) {
 
     // Se notificationId for fornecido, criar evento e arquivar notificação em transação
     if (notificationId) {
+      // Se não houver observation, usar mensagem padrão na description
+      const desc = observation?.trim()
+        ? observation
+        : 'Laudo enviado pelo app Omni';
       const result = await prisma.$transaction(async (tx) => {
         const event = await tx.healthEvent.create({
           data: {
             title,
-            description,
+            description: desc,
+            observation,
             date: utcDate,
             startTime,
             endTime,
@@ -336,6 +344,7 @@ export async function POST(req: Request) {
         data: {
           title,
           description,
+          observation,
           date: utcDate,
           startTime,
           endTime,

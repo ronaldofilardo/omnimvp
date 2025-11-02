@@ -49,6 +49,7 @@ model HealthEvent {
   id             String       @id @default(cuid())
   title          String
   description    String?
+  observation    String? // Observação do evento
   date           String
   startTime      String
   endTime        String

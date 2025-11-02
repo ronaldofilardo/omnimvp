@@ -117,7 +117,7 @@ export default function CreateEventFromNotificationModal({ open, onClose, onSucc
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title,
-          description: doctorName,
+          description: 'laudo enviado pelo app Omni',
           date,
           startTime,
           endTime,
@@ -158,7 +158,7 @@ export default function CreateEventFromNotificationModal({ open, onClose, onSucc
         body: JSON.stringify({
           id: eventId,
           title,
-          description: doctorName,
+          description: 'laudo enviado pelo app Omni',
           date,
           startTime,
           endTime,

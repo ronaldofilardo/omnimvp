@@ -17,7 +17,11 @@ async function getEvent(id: string) {
       return null
     }
 
-    return event
+    // Garante que observation nunca será null, apenas string ou undefined
+    return {
+      ...event,
+      observation: event.observation ?? undefined,
+    }
   } catch (error) {
     console.error('Erro ao buscar evento:', error)
     return null

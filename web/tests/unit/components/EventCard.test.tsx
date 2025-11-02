@@ -18,7 +18,7 @@ Object.assign(navigator, {
 })
 
 // Mock do window.open
-global.open = vi.fn()
+;(globalThis as any).open = vi.fn()
 
 // Mock do fetch para upload
 describe('EventCard', () => {
@@ -67,7 +67,7 @@ describe('EventCard', () => {
     render(<EventCard {...defaultProps} />)
   expect(screen.getByText('Consulta - Dr. Silva - 10:00 - 11:00')).to.exist
   expect(screen.getByText('Rua das Flores, 123')).to.exist
-  expect(screen.getByText((content) => content.startsWith('Instruções:'))).to.exist
+  expect(screen.getByText('Instruções: Trazer exames anteriores')).to.exist
   })
 
   it('opens view modal when details button is clicked', () => {
@@ -161,14 +161,34 @@ describe('EventCard', () => {
     fireEvent.click(concludeButton)
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect((globalThis as any).fetch).toHaveBeenCalledWith(
         '/api/upload',
         expect.any(Object)
       )
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect((globalThis as any).fetch).toHaveBeenCalledWith(
         '/api/events',
         expect.any(Object)
       )
     })
+  })
+  it('displays observation as instructions when present', () => {
+    render(<EventCard {...defaultProps} />)
+    expect(screen.getByText('Instruções: Trazer exames anteriores')).to.exist
+  })
+
+  it('displays description as instructions when observation is empty', () => {
+    const eventWithoutObservation = { ...event, observation: '' }
+    render(<EventCard {...defaultProps} event={eventWithoutObservation} />)
+    expect(screen.getByText('Instruções:')).to.exist
+  })
+
+  it('displays standardized instructions for events created from notifications', () => {
+    const eventFromNotification = {
+      ...event,
+      observation: '',
+      description: 'laudo enviado pelo app Omni'
+    }
+    render(<EventCard {...defaultProps} event={eventFromNotification} />)
+    expect(screen.getByText('Instruções: laudo enviado pelo app Omni')).to.exist
   })
 })
