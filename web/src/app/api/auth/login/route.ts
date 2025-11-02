@@ -5,61 +5,65 @@ import { prisma } from '@/lib/prisma'
 export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json()
+    console.log('Tentando login para:', email)
 
     if (!email || !password) {
+      console.log('Faltando email ou senha')
       return NextResponse.json(
         { error: 'Email e senha são obrigatórios' },
         { status: 400 }
       )
     }
 
-    // Normalizar e-mail para evitar problemas de caixa/espaços
     const normalizedEmail = String(email).trim().toLowerCase()
+    console.log('Email normalizado:', normalizedEmail)
 
-    // Buscar usuário pelo email (case-insensitive) e incluir dados adicionais
     const user = await prisma.user.findFirst({
       where: {
         email: { equals: normalizedEmail, mode: 'insensitive' },
       },
-      include: {
-        emissorInfo: true, // Incluir informações do emissor, se houver
-      },
+      include: { emissorInfo: true },
     })
 
     if (!user) {
+      console.log('Usuário não encontrado')
       return NextResponse.json(
         { error: 'Credenciais inválidas' },
         { status: 401 }
       )
     }
 
-  // Verificar senha
-  const isPasswordValid = await bcrypt.compare(password, user.password)
+    console.log('Usuário encontrado:', user.email, 'Role:', user.role)
+    console.log('Hash no banco:', user.password)
+
+    const isPasswordValid = await bcrypt.compare(password, user.password)
+    console.log('Senha válida?', isPasswordValid)
 
     if (!isPasswordValid) {
+      console.log('Senha inválida')
       return NextResponse.json(
         { error: 'Credenciais inválidas' },
         { status: 401 }
       )
     }
 
-  // Retornar usuário sem senha
-  const { password: _, ...userWithoutPassword } = user
+    const allowedRoles = ['RECEPTOR', 'EMISSOR'] as const
+    if (!allowedRoles.includes(user.role as any)) {
+      console.log('Role não permitido:', user.role)
+      return NextResponse.json({ error: 'Credenciais inválidas' }, { status: 401 })
+    }
 
-  // Permitir login tanto para RECEPTOR quanto para EMISSOR
-  const allowedRoles = ['RECEPTOR', 'EMISSOR'] as const
-  if (!allowedRoles.includes(user.role as any)) {
-    return NextResponse.json({ error: 'Credenciais inválidas' }, { status: 401 })
-  }
+    // Retornar usuário sem senha
+    const { password: _, ...userWithoutPassword } = user
 
-  // Setar cookie de sessão com o id e role do usuário (ex: id:role)
-  const sessionValue = `${user.id}:${user.role}`
-  const response = NextResponse.json({ user: userWithoutPassword }, { status: 200 })
-  response.headers.set(
-    'Set-Cookie',
-    `kairos_imob_session=${sessionValue}; Path=/; HttpOnly; SameSite=Lax`
-  )
-  return response
+    // Setar cookie de sessão com o id e role do usuário (ex: id:role)
+    const sessionValue = `${user.id}:${user.role}`
+    const response = NextResponse.json({ user: userWithoutPassword }, { status: 200 })
+    response.headers.set(
+      'Set-Cookie',
+      `kairos_imob_session=${sessionValue}; Path=/; HttpOnly; SameSite=Lax`
+    )
+    return response
   } catch (error) {
     console.error('Erro ao fazer login:', error)
     return NextResponse.json(
