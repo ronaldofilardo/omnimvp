@@ -331,9 +331,7 @@ export function RepositoryTab({ userId }: RepositoryTabProps) {
                               try {
                                 const formData = new FormData()
                                 formData.append('file', e.target.files[0])
-                                formData.append('slot', slotType)
-                                formData.append('eventId', event.id)
-                                const res = await fetch('/api/upload-file', {
+                                const res = await fetch('/api/upload', {
                                   method: 'POST',
                                   body: formData,
                                 })
@@ -350,7 +348,7 @@ export function RepositoryTab({ userId }: RepositoryTabProps) {
                                             slot: slotType,
                                             name: data.name,
                                             url: data.url,
-                                            uploadDate: new Date().toISOString().split('T')[0],
+                                            uploadDate: data.uploadDate,
                                           },
                                         ],
                                       }
